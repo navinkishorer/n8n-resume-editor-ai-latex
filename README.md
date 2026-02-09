@@ -113,6 +113,7 @@ Sample versions are included in this repository.
    * Select the job role
    * Paste the job description
 5. Submit
+![form](docs/screenshots/Form-input.png)
 
 ### 6. Output
 - A new LaTeX file is written to: `files/resumes/output/`
