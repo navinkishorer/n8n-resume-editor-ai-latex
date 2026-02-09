@@ -123,7 +123,6 @@ Sample versions are included in this repository.
 ### Example use cases
 - Rapid resume tailoring per job posting
 - ATS keyword alignment without formatting risk
-- Batch resume generation for multiple roles
 - Demonstrating safe LLM integration in automation pipelines
 
 
