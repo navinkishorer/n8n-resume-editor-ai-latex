@@ -3,6 +3,8 @@
 A production style n8n workflow that edits LaTeX resumes safely using DeepSeek.
 It updates only marked sections in a `.tex` template to match a job description while preserving formatting, macros, and structure.
 
+![Workflow](n8n-resume-editor-ai-latex/docs/screenshots/Workflow-n8n.png)
+
 ## What it does
 Given:
 - a target role (predefined)
