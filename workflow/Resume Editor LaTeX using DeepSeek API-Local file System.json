@@ -1,0 +1,559 @@
+{
+  "name": "Resume Editor LaTeX using DeepSeek API-Local file System",
+  "nodes": [
+    {
+      "parameters": {
+        "filePath": "/home/node/.n8n-files/resumes/skills/skills_by_role.json"
+      },
+      "id": "abc63c48-e618-41d8-90d8-96cc81f2292c",
+      "name": "Read Skills File",
+      "type": "n8n-nodes-base.readBinaryFile",
+      "typeVersion": 1,
+      "position": [
+        896,
+        -240
+      ],
+      "notesInFlow": true,
+      "executeOnce": false,
+      "notes": "File not found"
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "template_path",
+              "value": "={{({\n  growth_analyst: '/home/node/.n8n-files/resumes/templates/Resumeinlatex.tex',\n  product_analyst: '/home/node/.n8n-files/resumes/templates/Resumeinlatex.tex',\n  marketing_analyst: '/home/node/.n8n-files/resumes/templates/Resumeinlatex.tex',\n  data_analyst: '/home/node/.n8n-files/resumes/templates/Resumeinlatex.tex',\n  data_engineer: '/home/node/.n8n-files/resumes/templates/Resumeinlatex.tex',\n  growth_engineer: '/home/node/.n8n-files/resumes/templates/Resumeinlatex.tex'\n})[$json.role]}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "4366bbeb-41a9-4b3e-8e66-c09f095fe31d",
+      "name": "Set Template Path",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2,
+      "position": [
+        1520,
+        -240
+      ]
+    },
+    {
+      "parameters": {
+        "filePath": "={{$json.template_path}}"
+      },
+      "id": "c94c33c3-c340-4bd3-aca0-86f3d2cd6b92",
+      "name": "Read LaTeX Template",
+      "type": "n8n-nodes-base.readBinaryFile",
+      "typeVersion": 1,
+      "position": [
+        1712,
+        -240
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.deepseek.com/chat/completions",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "deepSeekApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{$json.payload}}",
+        "options": {}
+      },
+      "id": "942d5b66-49f3-44b0-8370-5c6b0d52534a",
+      "name": "DeepSeek (HTTP)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        1072,
+        48
+      ],
+      "credentials": {
+        "deepSeekApi": {
+          "id": "Oe7CrzGhOE2QgHgB",
+          "name": "DeepSeek account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Normalize arbitrary incoming keys (forms, webhooks) into:\n// { role, job_description }\n\nconst raw = $json;\n\n// Build a map of \"normalized_key\" -> original key\n// Normalization: lowercase, remove spaces/underscores/hyphens, trim.\nconst keyMap = {};\nfor (const k of Object.keys(raw)) {\n  const nk = String(k)\n    .trim()\n    .toLowerCase()\n    .replace(/[\\s_\\-]/g, ''); // remove space, underscore, hyphen\n  keyMap[nk] = k;\n}\n\n// Helper: return the first matching value from candidate normalized keys\nfunction pick(candidates) {\n  for (const c of candidates) {\n    const nk = c\n      .trim()\n      .toLowerCase()\n      .replace(/[\\s_\\-]/g, '');\n    const originalKey = keyMap[nk];\n    if (originalKey !== undefined && raw[originalKey] != null && raw[originalKey] !== '') {\n      return raw[originalKey];\n    }\n  }\n  return null;\n}\n\n// Try many likely variants for ROLE and JD\nconst role = pick([\n  'role',\n  'job_role',\n  'job role',\n  'jobrole',\n  'position',\n  'jobtitle',\n  'title'\n]);\n\nconst jd = pick([\n  'job_description',\n  'job description',\n  'description',\n  'jd',\n  'posting',\n  'jobposting'\n]);\n\nif (!role || !jd) {\n  const keys = Object.keys(raw);\n  throw new Error(\n    `Missing required fields. Got role=\"${role}\", job_description length=\"${jd ? String(jd).length : 0}\". ` +\n    `Available keys: ${keys.join(', ')}`\n  );\n}\n\nconst normalizedRole = String(role).trim().toLowerCase();\n\nconst allowedRoles = [\n  'growth_analyst',\n  'product_analyst',\n  'marketing_analyst',\n  'data_analyst',\n  'data_engineer',\n  'growth_engineer'\n];\n\nif (!allowedRoles.includes(normalizedRole)) {\n  throw new Error(`Invalid role: ${normalizedRole}. Allowed: ${allowedRoles.join(', ')}`);\n}\n\nreturn [{\n  role: normalizedRole,\n  job_description: String(jd).trim()\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        640,
+        -48
+      ],
+      "id": "ddf76588-ac28-466e-bfd9-b52a6bbfe191",
+      "name": "Validate Input"
+    },
+    {
+      "parameters": {
+        "formTitle": "Enter Job Role and Description",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Job Role ",
+              "fieldType": "dropdown",
+              "defaultValue": "growth_analyst",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "growth_analyst"
+                  },
+                  {
+                    "option": "product_analyst"
+                  },
+                  {
+                    "option": "marketing_analyst"
+                  },
+                  {
+                    "option": "data_analyst"
+                  },
+                  {
+                    "option": "data_engineer"
+                  },
+                  {
+                    "option": "growth_engineer"
+                  }
+                ]
+              }
+            },
+            {
+              "fieldLabel": "Description"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.5,
+      "position": [
+        480,
+        -48
+      ],
+      "id": "25d6571f-0258-4a0b-ae36-18c617770245",
+      "name": "On form submission",
+      "webhookId": "124ce60c-96e7-4df9-8bcf-25e1cd85aece"
+    },
+    {
+      "parameters": {
+        "jsCode": "const role = $node['Validate Input'].json.role;\nconst jd = $node['Validate Input'].json.job_description;\n\n// Pull parsed JSON from your \"Extract from File\" node\nlet root = $node['Extract from Skill File']?.json;\n\nif (!root || typeof root !== 'object') {\n  throw new Error('Extract from File did not return a JSON object');\n}\n\n// Some n8n file extract nodes wrap the parsed content under { data: ... }\nconst skillsByRole =\n  (root.data && typeof root.data === 'object') ? root.data : root;\n\nif (!skillsByRole[role]) {\n  const availableRoles = Object.keys(skillsByRole).slice(0, 50);\n  throw new Error(\n    `Role not found in skills_by_role.json: ${role}. Available: ${availableRoles.join(', ')}`\n  );\n}\n\nreturn [{\n  role,\n  job_description: jd,\n  role_skills: skillsByRole[role]\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1264,
+        -240
+      ],
+      "id": "042abc9d-fd50-42ed-b112-0aa286570a06",
+      "name": "Select Skills For Role"
+    },
+    {
+      "parameters": {
+        "jsCode": "// n8n \"Extract from File\" often outputs the file content under `data`.\n// Your old pipeline used MoveBinaryData -> latex_text.\n// Support both shapes.\n\nconst latex =\n  (typeof $json.latex_text === 'string' && $json.latex_text.trim().length > 0)\n    ? $json.latex_text\n    : (typeof $json.data === 'string' && $json.data.trim().length > 0)\n      ? $json.data\n      : null;\n\nif (!latex) {\n  const keys = Object.keys($json || {}).join(', ');\n  throw new Error(`No LaTeX string found on this item. Expected latex_text or data. Available keys: ${keys}`);\n}\n\nfunction getBlock(name) {\n  const start = `%=== ${name}_START ===`;\n  const end = `%=== ${name}_END ===`;\n  const s = latex.indexOf(start);\n  const e = latex.indexOf(end);\n  if (s === -1 || e === -1 || e < s) {\n    throw new Error(`Missing markers for ${name}. Add ${start} and ${end} in the template.`);\n  }\n  return latex.slice(s + start.length, e).trim();\n}\n\nreturn [{\n  role: $node['Select Skills For Role'].json.role,\n  job_description: $node['Select Skills For Role'].json.job_description,\n  role_skills: $node['Select Skills For Role'].json.role_skills,\n  latex_full: latex,\n  current_location: getBlock('LOCATION'),\n  current_summary: getBlock('SUMMARY'),\n  current_skills: getBlock('SKILLS'),\n  current_experience: getBlock('EXPERIENCE'),\n  current_projects: getBlock('PROJECTS')\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2080,
+        -240
+      ],
+      "id": "41269395-ba31-4ff6-b1b1-8fb3723a921b",
+      "name": "Extract Marked Sections"
+    },
+    {
+      "parameters": {
+        "operation": "toText",
+        "sourceProperty": "latex_updated",
+        "options": {
+          "encoding": "utf8",
+          "fileName": "={{$json.output_filename}}"
+        }
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        1904,
+        48
+      ],
+      "id": "030b0c19-221c-4a06-882f-eefac24502c3",
+      "name": "Convert to File"
+    },
+    {
+      "parameters": {
+        "jsCode": "const blocks = {\n  location: $json.patch_location,\n  summary: $json.patch_summary,\n  skills: $json.patch_skills,\n  experience: $json.patch_experience,\n  projects: $json.patch_projects\n};\n\nconst forbidden = [\n  '\\\\documentclass',\n  '\\\\usepackage',\n  '\\\\begin{document}',\n  '\\\\end{document}',\n  '\\\\newcommand',\n  '\\\\renewcommand',\n  '\\\\Declare',\n  '\\\\def',\n  '\\\\input',\n  '\\\\include',\n  '\\\\write18',\n  '\\\\openout',\n  '\\\\read',\n  '\\\\catcode',\n  '\\\\csname'\n];\n\nfor (const [k, v] of Object.entries(blocks)) {\n  for (const token of forbidden) {\n    if (v.includes(token)) {\n      throw new Error(`Forbidden token \"${token}\" found in ${k}`);\n    }\n  }\n}\n\nfunction braceBalance(s) {\n  let b = 0;\n  for (const ch of s) {\n    if (ch === '{') b++;\n    if (ch === '}') b--;\n    if (b < 0) return false;\n  }\n  return b === 0;\n}\n\nfor (const [k, v] of Object.entries(blocks)) {\n  if (!braceBalance(v)) {\n    throw new Error(`Unbalanced braces in ${k}`);\n  }\n}\n\nconst maxChars = 18000;\nfor (const [k, v] of Object.entries(blocks)) {\n  if (v.length > maxChars) {\n    throw new Error(`${k} block too large (${v.length} chars)`);\n  }\n}\n\nreturn [{ ...$json }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1456,
+        48
+      ],
+      "id": "0362cd3d-8231-4851-8b62-4c0f6e341553",
+      "name": "Validate Patches"
+    },
+    {
+      "parameters": {
+        "jsCode": "let latex = $json.latex_full;\n\nfunction replaceBlock(name, newInner) {\n  const start = `%=== ${name}_START ===`;\n  const end = `%=== ${name}_END ===`;\n  const re = new RegExp(`${start}[\\\\s\\\\S]*?${end}`, 'm');\n  if (!re.test(latex)) {\n    throw new Error(`Could not find block for ${name}`);\n  }\n  latex = latex.replace(re, `${start}\\n${newInner}\\n${end}`);\n}\n\nreplaceBlock('LOCATION', $json.patch_location);\nreplaceBlock('SUMMARY', $json.patch_summary);\nreplaceBlock('SKILLS', $json.patch_skills);\nreplaceBlock('EXPERIENCE', $json.patch_experience);\nreplaceBlock('PROJECTS', $json.patch_projects);\n\n// Timestamp like 20260204_073746\nfunction pad2(n) { return String(n).padStart(2, '0'); }\nconst d = new Date(); // uses container time\nconst ts =\n  d.getFullYear() +\n  pad2(d.getMonth() + 1) +\n  pad2(d.getDate()) +\n  '_' +\n  pad2(d.getHours()) +\n  pad2(d.getMinutes()) +\n  pad2(d.getSeconds());\n\nconst role = $node['Validate Input'].json.role || 'role';\nconst filename = `${ts}_${role}.tex`;\n\n// IMPORTANT: inside docker, write to a mounted path, not /Users/...\n// Change this to your container-mounted output directory.\nconst outputDir = '/home/node/.n8n-files/resumes/output';\nconst outputPath = `${outputDir}/${filename}`;\n\nreturn [{\n  latex_updated: latex,\n  output_filename: filename,\n  output_path: outputPath\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1632,
+        48
+      ],
+      "id": "8f0a0e37-789e-4fb1-a521-33d375780d60",
+      "name": "Apply Patches"
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "fileName": "={{$node[\"Apply Patches\"].json.output_path}}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1.1,
+      "position": [
+        2080,
+        48
+      ],
+      "id": "1f6c24ff-0a22-427d-9d3c-ca71012bc268",
+      "name": "Read/Write Files from Disk"
+    },
+    {
+      "parameters": {
+        "content": "## 2. Skills  Block\nChoosing Skills for the requested role from a predefined JSON file",
+        "height": 256,
+        "width": 560,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        848,
+        -336
+      ],
+      "typeVersion": 1,
+      "id": "32d2e868-4166-40a2-807d-3004cb4a92db",
+      "name": "Sticky Note",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "content": "## 3. Parse Resume Block\nChoosing RESUME from predefined source in local file system",
+        "height": 256,
+        "width": 800,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1456,
+        -336
+      ],
+      "typeVersion": 1,
+      "id": "015d60c0-3f9a-4784-b138-b820bc1b7d5c",
+      "name": "Sticky Note1",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "operation": "fromJson",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        1072,
+        -240
+      ],
+      "id": "58277bb1-146d-4a32-86c0-fc1ec255b478",
+      "name": "Extract from Skill File"
+    },
+    {
+      "parameters": {
+        "operation": "text",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        1888,
+        -240
+      ],
+      "id": "0789f22a-16dc-408f-9c5d-9ba020de102b",
+      "name": "Extract from Latex Template"
+    },
+    {
+      "parameters": {
+        "content": "## 4. AI Resume Edit block\nUsing DEEPSEEK equipped with ATS friendly prompts + gaurdrails to edit the resume contents",
+        "height": 256,
+        "width": 912,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        848,
+        -48
+      ],
+      "typeVersion": 1,
+      "id": "c0ba7720-d5b6-4313-88a6-701741492f25",
+      "name": "Sticky Note2",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// Build the DeepSeek request payload safely in JS.\n// Updated to do JD-scan ATS keyword extraction (must_have / strong_signals / nice_to_have),\n// supportability checks, integration plan, then LaTeX edits, then an ATS audit.\n// Keeps JSON output strict and LaTeX-safe.\n\nfunction normalizeKw(s) {\n  return String(s || \"\")\n    .toLowerCase()\n    .replace(/[’']/g, \"\")\n    .replace(/[^a-z0-9+.#/ -]/g, \" \")\n    .replace(/\\s+/g, \" \")\n    .trim();\n}\n\nfunction uniq(arr) {\n  const out = [];\n  const seen = new Set();\n  for (const x of arr || []) {\n    const k = normalizeKw(x);\n    if (!k) continue;\n    if (seen.has(k)) continue;\n    seen.add(k);\n    out.push(String(x).trim());\n  }\n  return out;\n}\n\n// Role skills as a reference list (NOT the keyword source of truth).\nconst roleSkills = Array.isArray($json.role_skills) ? $json.role_skills : [];\n\n// Optional: seed keywords can be passed in to bias scanning (ex: from a known ATS list).\nconst seedKeywords = uniq(Array.isArray($json.ats_seed_keywords) ? $json.ats_seed_keywords : []);\n\n// Coverage goal for \"supported + weakly_supported\" keywords from the JD scan.\nconst coverageGoalPct = Number.isFinite($json.coverage_goal_pct)\n  ? Math.max(0, Math.min(100, $json.coverage_goal_pct))\n  : 80;\n\n// Guardrails to prevent LaTeX breakage.\nconst latexGuardrails = [\n  \"Do NOT modify documentclass, packages, preamble, or custom commands.\",\n  \"Do NOT add new LaTeX commands or environments not already present inside the provided blocks.\",\n  \"Do NOT add or remove braces. Preserve macro structure (e.g., \\\\resumeSubheading, \\\\resumeItem).\",\n  \"Only edit text content inside the provided blocks.\",\n  \"Preserve spacing/line breaks as much as possible.\",\n  \"Escape characters only if already escaped in that block.\"\n].join(\" \");\n\n// Output contract: strict JSON, no markdown.\nconst outputContract = [\n  \"Output ONLY strict JSON.\",\n  \"No markdown. No explanations. No extra keys.\",\n  \"Top-level keys must be exactly: location, summary, skills, experience, projects, ats_audit.\",\n  \"Each of location/summary/skills/experience/projects must be valid LaTeX to paste between existing markers.\",\n  \"ats_audit must be JSON with keys exactly: must_have_keywords, strong_signals, nice_to_have, supported_added, weakly_supported_added, missing_not_supported, coverage_pct_estimate, notes.\"\n].join(\" \");\n\n// ATS integration rules: improve match without fabricating.\nconst atsRules = [\n  \"ATS integration rules:\",\n  \"- Do NOT invent experience, tools, metrics, employers, titles, certifications, or outcomes.\",\n  \"- Only add keywords that are supported or weakly_supported by the CURRENT blocks.\",\n  \"- Do NOT add not_supported keywords into LaTeX. Keep them only in ats_audit.missing_not_supported.\",\n  \"- Avoid keyword stuffing. Spread keywords naturally across Summary, Skills, and relevant Experience bullets.\",\n  \"- Max 2 newly inserted keywords per bullet (Experience and Projects).\",\n  \"- Prefer minimal edits. Maximum signal.\",\n  `- Aim for >= ${coverageGoalPct}% coverage of (supported + weakly_supported) JD keywords across ALL returned blocks.`\n].join(\"\\n\");\n\n// The model must do the keyword scan from the JD. Seed keywords only bias scanning.\nconst jdScanSpec = [\n  \"STEP 1. JD KEYWORD SCAN (do this first, based on JOB DESCRIPTION)\",\n  \"- Extract 20 to 35 keywords as short phrases, not sentences.\",\n  \"- Normalize variants and merge duplicates.\",\n  \"- Bucket into three ranked lists:\",\n  \"  A) must_have (most required, repeated, core responsibilities/requirements)\",\n  \"  B) strong_signals (tools, methods, metrics, platforms, domains)\",\n  \"  C) nice_to_have (secondary or bonus items)\",\n  \"- If ATS_SEED_KEYWORDS are provided, use them only to bias ranking or include if present in JD. Do not blindly include seeds that are not in the JD.\",\n  \"\",\n  \"STEP 2. SUPPORTABILITY CHECK (compare JD keywords against CURRENT blocks)\",\n  \"- supported: clearly present in CURRENT blocks.\",\n  \"- weakly_supported: implied by existing responsibilities or tools.\",\n  \"- not_supported: cannot be truthfully added.\",\n  \"\",\n  \"STEP 3. KEYWORD INTEGRATION PLAN\",\n  \"- Summary: 5 to 8 high intent keywords.\",\n  \"- Skills: grouped cleanly. exact tool names.\",\n  \"- Experience: integrate naturally. max two newly inserted keywords per bullet.\",\n  \"- Projects: only if directly supported.\",\n  \"\",\n  \"STEP 4. EDIT LaTeX BLOCKS\",\n  \"- Keep macros, spacing, and bullet structure intact.\",\n  \"- Only edit text inside the blocks.\",\n  \"\",\n  \"STEP 5. ATS AUDIT (required)\",\n  \"- must_have_keywords, strong_signals, nice_to_have must reflect the JD scan outputs.\",\n  \"- supported_added: keywords inserted that are supported.\",\n  \"- weakly_supported_added: keywords inserted that are weakly_supported.\",\n  \"- missing_not_supported: JD keywords you did NOT add because not_supported.\",\n  `- coverage_pct_estimate: estimate percent of (supported + weakly_supported) JD keywords that appear at least once across location+summary+skills+experience+projects. Target >= ${coverageGoalPct}.`,\n  \"- If coverage_pct_estimate < target, revise edits once to improve coverage without fabricating, then finalize.\"\n].join(\"\\n\");\n\nreturn [{\n  payload: {\n    model: $json.model || \"deepseek-chat\", // optionally override with \"deepseek-reasoner\"\n    temperature: 0.15, // lower = safer LaTeX + less creative drift\n    messages: [\n      {\n        role: \"system\",\n        content:\n          \"You are an ATS keyword scanner and resume editor for a LaTeX resume using macros like \\\\resumeSubheading and \\\\resumeItem. \" +\n          outputContract + \" \" +\n          latexGuardrails + \" \" +\n          \"Never invent metrics, employers, titles, tools, or results. Preserve factual accuracy.\"\n      },\n      {\n        role: \"user\",\n        content:\n          \"TARGET ROLE:\\n\" + ($json.role || \"\") +\n\n          \"\\n\\nATS_SEED_KEYWORDS (optional bias list, may be empty):\\n\" +\n          JSON.stringify(seedKeywords) +\n\n          \"\\n\\nROLE SKILLS (reference list, may be used for phrasing only):\\n\" +\n          JSON.stringify(roleSkills) +\n\n          \"\\n\\nJOB DESCRIPTION:\\n\" +\n          ($json.job_description || \"\") +\n\n          \"\\n\\nCURRENT LOCATION BLOCK (keep same style):\\n\" +\n          ($json.current_location || \"\") +\n\n          \"\\n\\nCURRENT SUMMARY BLOCK (keep section style):\\n\" +\n          ($json.current_summary || \"\") +\n\n          \"\\n\\nCURRENT SKILLS BLOCK (keep formatting and itemize structure):\\n\" +\n          ($json.current_skills || \"\") +\n\n          \"\\n\\nCURRENT EXPERIENCE BLOCK (keep macros, spacing, and bullet structure):\\n\" +\n          ($json.current_experience || \"\") +\n\n          \"\\n\\nCURRENT PROJECTS BLOCK (keep macros, spacing, and bullet structure):\\n\" +\n          ($json.current_projects || \"\") +\n\n          \"\\n\\nTASK:\\n\" +\n          \"Perform JD-scan ATS keyword extraction, supportability check, integration plan, then update LaTeX blocks.\\n\" +\n          \"Return strict JSON with keys: location, summary, skills, experience, projects, ats_audit.\\n\\n\" +\n          atsRules + \"\\n\\n\" +\n          jdScanSpec\n      }\n    ]\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        880,
+        48
+      ],
+      "id": "75e4c7cd-6548-42be-b0b9-90a407867cd3",
+      "name": "AI Resume Prompt + Guardrail payload"
+    },
+    {
+      "parameters": {
+        "jsCode": "const content = $json?.choices?.[0]?.message?.content;\nif (!content) throw new Error('No model content returned');\n\nfunction extractJson(text) {\n  let t = String(text).trim();\n\n  // 1) If fenced ```json ... ``` or ``` ... ```\n  const fenceMatch = t.match(/```(?:json)?\\s*([\\s\\S]*?)\\s*```/i);\n  if (fenceMatch && fenceMatch[1]) {\n    t = fenceMatch[1].trim();\n  }\n\n  // 2) Remove any leading/trailing junk by taking the first {...} block\n  const firstBrace = t.indexOf('{');\n  const lastBrace = t.lastIndexOf('}');\n  if (firstBrace === -1 || lastBrace === -1 || lastBrace <= firstBrace) {\n    throw new Error('Could not locate a JSON object in model output. Raw: ' + String(text).slice(0, 400));\n  }\n  return t.slice(firstBrace, lastBrace + 1);\n}\n\nlet patch;\ntry {\n  const jsonText = extractJson(content);\n  patch = JSON.parse(jsonText);\n} catch (e) {\n  throw new Error('Model did not return valid JSON. Raw: ' + content.slice(0, 900));\n}\n\nconst keys = ['location', 'summary', 'skills', 'experience', 'projects'];\nfor (const k of keys) {\n  if (typeof patch[k] !== 'string' || !patch[k].trim()) {\n    throw new Error(`Missing or invalid key: ${k}`);\n  }\n}\n\nreturn [{\n  latex_full: $node['Extract Marked Sections'].json.latex_full,\n  patch_location: patch.location.trim(),\n  patch_summary: patch.summary.trim(),\n  patch_skills: patch.skills.trim(),\n  patch_experience: patch.experience.trim(),\n  patch_projects: patch.projects.trim()\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1264,
+        48
+      ],
+      "id": "141093f0-ca5d-4f83-bef7-d009876a7a05",
+      "name": "Parse DeepSeek Output"
+    },
+    {
+      "parameters": {
+        "content": "## 5. Output Block\nCreating and Writing the Output as a Latex file",
+        "height": 256,
+        "width": 432,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1824,
+        -48
+      ],
+      "typeVersion": 1,
+      "id": "879cbf85-fd4f-4b75-aee8-a0dfec26a35f",
+      "name": "Sticky Note3",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "content": "## 1. Input Block\nFilling in the Job role and Description as a form\n",
+        "height": 256,
+        "width": 352,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        416,
+        -144
+      ],
+      "typeVersion": 1,
+      "id": "38c18c26-f5de-4919-b476-f929c98b06aa",
+      "name": "Sticky Note4",
+      "disabled": true
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Set Template Path": {
+      "main": [
+        [
+          {
+            "node": "Read LaTeX Template",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate Input": {
+      "main": [
+        [
+          {
+            "node": "Read Skills File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "On form submission": {
+      "main": [
+        [
+          {
+            "node": "Validate Input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Skills File": {
+      "main": [
+        [
+          {
+            "node": "Extract from Skill File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Select Skills For Role": {
+      "main": [
+        [
+          {
+            "node": "Set Template Path",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read LaTeX Template": {
+      "main": [
+        [
+          {
+            "node": "Extract from Latex Template",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Marked Sections": {
+      "main": [
+        [
+          {
+            "node": "AI Resume Prompt + Guardrail payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "DeepSeek (HTTP)": {
+      "main": [
+        [
+          {
+            "node": "Parse DeepSeek Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert to File": {
+      "main": [
+        [
+          {
+            "node": "Read/Write Files from Disk",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate Patches": {
+      "main": [
+        [
+          {
+            "node": "Apply Patches",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Apply Patches": {
+      "main": [
+        [
+          {
+            "node": "Convert to File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from Skill File": {
+      "main": [
+        [
+          {
+            "node": "Select Skills For Role",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from Latex Template": {
+      "main": [
+        [
+          {
+            "node": "Extract Marked Sections",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Resume Prompt + Guardrail payload": {
+      "main": [
+        [
+          {
+            "node": "DeepSeek (HTTP)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse DeepSeek Output": {
+      "main": [
+        [
+          {
+            "node": "Validate Patches",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false,
+    "timeSavedMode": "fixed",
+    "timezone": "America/Los_Angeles",
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "versionId": "9fba163e-9d03-4941-a89a-71f77af4bfca",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "03772e408b279e722e08f20b34874db04eaf7ce87ef4cd52a011945201499846"
+  },
+  "id": "hDZmAsQJKxPoFQiN",
+  "tags": []
+}

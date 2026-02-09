@@ -1,0 +1,167 @@
+%-------------------------
+% Resume in Latex
+% Author : <First Name> <Last Name>
+% Target Role: <Preferred Role>
+%------------------------
+
+\documentclass[letterpaper,11pt]{article}
+
+\usepackage{latexsym}
+\usepackage[empty]{fullpage}
+\usepackage{titlesec}
+\usepackage{marvosym}
+\usepackage[usenames,dvipsnames]{color}
+\usepackage{verbatim}
+\usepackage{enumitem}
+\usepackage[hidelinks]{hyperref}
+\usepackage{fancyhdr}
+\usepackage[english]{babel}
+\usepackage{tabularx}
+\usepackage{fontawesome5}
+\usepackage{multicol}
+\setlength{\multicolsep}{-3.0pt}
+\setlength{\columnsep}{-1pt}
+\input{glyphtounicode}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyfoot{}
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}
+
+\addtolength{\oddsidemargin}{-0.6in}
+\addtolength{\evensidemargin}{-0.5in}
+\addtolength{\textwidth}{1.2in}
+\addtolength{\topmargin}{-0.7in}
+\addtolength{\textheight}{1.4in}
+
+\urlstyle{same}
+
+\raggedbottom
+\raggedright
+\setlength{\tabcolsep}{0in}
+
+\titleformat{\section}{
+  \vspace{-4pt}\scshape\raggedright\large
+}{}{0em}{}[\color{black}\titlerule \vspace{-5pt}]
+
+\pdfgentounicode=1
+
+%-------------------------
+% Custom commands
+\newcommand{\resumeItem}[1]{
+  \item\small{
+    {#1 \vspace{-2pt}}
+  }
+}
+
+\newcommand{\resumeSubheading}[4]{
+  \vspace{-2pt}\item
+    \begin{tabular*}{1.0\textwidth}[t]{l@{\extracolsep{\fill}}r}
+      \textbf{#1} & \textbf{\small #2} \\
+      \textit{\small#3} & \textit{\small #4} \\
+    \end{tabular*}\vspace{-7pt}
+}
+
+\newcommand{\resumeSubItem}[1]{\resumeItem{#1}\vspace{-4pt}}
+
+\renewcommand\labelitemii{$\vcenter{\hbox{\tiny$\bullet$}}$}
+
+\newcommand{\resumeSubHeadingListStart}{\begin{itemize}[leftmargin=0.0in, label={}]}
+\newcommand{\resumeSubHeadingListEnd}{\end{itemize}}
+\newcommand{\resumeItemListStart}{\begin{itemize}}
+\newcommand{\resumeItemListEnd}{\end{itemize}\vspace{-5pt}}
+
+%-------------------------
+\begin{document}
+
+%----------HEADING----------
+\begin{center}
+    {\Huge \scshape <First Name, Last Name>} \\ \vspace{4pt}
+    %=== LOCATION_START ===
+    <Location> $|$
+    %=== LOCATION_END ===
+    \small
+    \href{https://www.linkedin.com/in/<Linkedin Username>}{LinkedIn} $|$
+    \href{https://github.com/<Github Username>}{GitHub} $|$
+    \href{mailto:<Your Email ID>}{<Your Email ID>}$|$
+    <Your Phone Number>
+\end{center}
+
+%-----------SUMMARY-----------
+%=== SUMMARY_START ===
+\section{Summary}
+<Your Professional Summary>
+%=== SUMMARY_END ===
+
+%-----------SKILLS-----------
+
+\section{Skills}
+\begin{itemize}[leftmargin=0.15in, label={}]
+\small{
+%=== SKILLS_START ===
+\item{
+\textbf{<Skill Set Heading>}{: Skill1, Skill2, Skill3,.....} \\
+\textbf{<Skill Set Heading>}{: Skill1, Skill2, Skill3,.....} \\
+\textbf{<Skill Set Heading>}{: Skill1, Skill2, Skill3,.....} \\
+\textbf{<Skill Set Heading>}{: Skill1, Skill2, Skill3,.....}
+}
+}
+\end{itemize}
+%=== SKILLS_END ===
+
+%-----------EXPERIENCE-----------
+%=== EXPERIENCE_START ===
+\section{Experience}
+\resumeSubHeadingListStart
+
+\resumeSubheading
+{Company 1}{Month year -- Month year}
+{Job Title}{Location}
+\resumeItemListStart
+\resumeItem{Experience 1 }
+\resumeItem{Experience 2 }
+\resumeItem{Experience 3 }
+\resumeItem{Experience 4 }
+\resumeItemListEnd
+
+\resumeSubheading
+{Company 2}{Month year -- Month year}
+{Job Title}{Location}
+\resumeItemListStart
+\resumeItem{Experience 1 }
+\resumeItem{Experience 2 }
+\resumeItem{Experience 3 }
+\resumeItem{Experience 4 }
+\resumeItemListEnd
+
+\resumeSubHeadingListEnd
+%=== EXPERIENCE_END ===
+
+%=== PROJECTS_START ===
+%-----------PROJECTS-----------
+\section{Projects}
+\resumeSubHeadingListStart
+\resumeSubheading
+{<Project Name>}{}
+{Product Mini Description}{}
+\resumeItemListStart
+\resumeItem{Project Explanation 1 - Keep it single line per bullet}
+\resumeItem{Project Explanation 2 - Keep it single line per bullet}
+\resumeItemListEnd
+\resumeSubHeadingListEnd
+%=== PROJECTS_END ===
+
+
+%-----------EDUCATION-----------
+\section{Education}
+\resumeSubHeadingListStart
+\resumeSubheading
+{College Name 1}{Month Year - Month Year}
+{M.S. in Course Name }{}
+\resumeSubheading
+{College Name 1}{Month Year - Month Year}
+{B.E. in Course Name}{}
+\resumeSubHeadingListEnd
+
+\end{document}

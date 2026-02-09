@@ -1,0 +1,8 @@
+{
+  "growth_analyst": ["SQL", "funnels", "experiments", "activation", "retention", "dashboards"],
+  "product_analyst": ["SQL", "KPIs", "cohorts", "A/B testing", "instrumentation", "retention"],
+  "marketing_analyst": ["attribution", "campaign measurement", "segmentation", "LTV", "SQL"],
+  "data_analyst": ["SQL", "BI", "data quality", "stakeholder reporting"],
+  "data_engineer": ["dbt", "pipelines", "Snowflake", "Python", "ETL"],
+  "growth_engineer": ["tracking", "experimentation", "automation", "APIs"]
+}
