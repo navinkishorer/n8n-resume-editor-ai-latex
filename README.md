@@ -32,27 +32,36 @@ The workflow:
 - Validation + guardrails (forbidden tokens, brace balance)
 
 ## Repository structure
+
+```text
 .
 ├── workflow/
 │   └── resume-editor-deepseek-5blocks.credential-safe.json
+│
 ├── files/
 │   └── resumes/
 │       ├── templates/
 │       │   └── Resumeinlatex.tex
+│       │
 │       ├── skills/
 │       │   └── skills_by_role.json
+│       │
 │       └── output/
 │           └── .gitkeep
+│
 ├── local/
 │   ├── docker-compose.yml
 │   └── README.md
+│
 ├── docs/
-│   ├── architecture.md
 │   ├── demo.md
 │   └── screenshots/
 │       └── Workflow-n8n.png
-└── README.md
-
+│       └── Form-input.png
+│
+├── README.md
+└── LICENSE
+```
 ---
 
 ## Required LaTeX markers
